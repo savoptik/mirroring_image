@@ -20,15 +20,16 @@
 
 void inCP(cv::Mat image) {
     clock_t tStart = clock();
-    for (int i = 0; i < image.rows; i++) {
+/*    for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols/2; j++) {
             auto buf = image.at<cv::Vec3b>(i, j);
             image.at<cv::Vec3b>(i, j) = image.at<cv::Vec3b>(i, image.cols-j);
                                                             image.at<cv::Vec3b>(i, image.cols-j) = buf;
         }
-    }
+    } */
+    system("sleep 1")
     clock_t tEnd = clock();
-    std::cout << "Время на ЦП: " << double(tEnd - tStart)/CLOCKS_PER_SEC * 1000 << std::endl;
+    std::cout << "Время на ЦП: " << double(tEnd - tStart)/CLOCKS_PER_SEC << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -164,12 +165,22 @@ int main(int argc, char** argv)
     }
     
     // ждем завершения выполнения задачи
-    clFinish(commands);
+    err = clWaitForEvents(1, &event)
+    if (err)
+    {
+      printf("Error: Failed to execute kernel!\n");
+      return EXIT_FAILURE;
+    }
     cl_ulong time_start, time_end;
     err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    if (gpu == 1) std::cout << "время на видеокарте: " << double((time_end - time_start)/1e9) << std::endl;
-    else std::cout << "На ЦП параллельно: " << double(t1 - t0)/CLOCKS_PER_SEC * 1000 << std::endl;
+    err |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    if (err)
+    {
+      printf("Error: Failed to get execution time!\n");
+      return EXIT_FAILURE;
+    }
+    if (gpu == 1) std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
+    else std::cout << "На ЦП параллельно: " << (double)(t1 - t0)/CLOCKS_PER_SEC * 1000 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
