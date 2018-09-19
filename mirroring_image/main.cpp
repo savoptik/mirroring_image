@@ -1,3 +1,9 @@
+//
+// 8.58993 Скорость на видеокарте
+// 18876 скорость на процессоре параллельно
+// 1105 — скорость на процессоре
+//
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,10 +16,25 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <iostream>
+
+void inCP(cv::Mat image) {
+    clock_t tStart = clock();
+    for (int i = 0; i < image.rows; i++) {
+        for (int j = 0; j < image.cols/2; j++) {
+            auto buf = image.at<cv::Vec3b>(i, j);
+            image.at<cv::Vec3b>(i, j) = image.at<cv::Vec3b>(i, image.cols-j);
+                                                            image.at<cv::Vec3b>(i, image.cols-j) = buf;
+        }
+    }
+                                                            clock_t tEnd = clock();
+    std::cout << "Время на ЦП: " << tEnd - tStart << std::endl;
+}
 
 int main(int argc, char** argv)
 {
     cv::Mat img = cv::imread(argv[2]);
+    inCP(img);
     int err;
     char *KernelSource = (char*) malloc(1000000); // указатель на буфер со строкой - кодом kernel-функции
 
@@ -132,16 +153,25 @@ int main(int argc, char** argv)
 
     // запускаем нашу kernel-функцию на гриде из count потоков с найденным максимальным размером блока
     global = ((img.rows * img.cols * 3) + (local - 1)) / local * local;
-    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    cl_event event;
+    clock_t t0 = clock();
+    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+    clock_t t1 = clock();
     if (err)
     {
         printf("Error: Failed to execute kernel!\n");
         return EXIT_FAILURE;
     }
-
+    
     // ждем завершения выполнения задачи
     clFinish(commands);
-
+    cl_ulong time_start, time_end;
+    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    if (gpu == 1) std::cout << "время на видеокарте: " << double((time_end - time_start)/1e9) << std::endl;
+    else std::cout << "На ЦП параллельно: " << t1 - t0 << std::endl;
+    clReleaseEvent(event);
+    
     // копируем результаты с видеокарты
     err = clEnqueueReadBuffer( commands, input, CL_TRUE, 0, sizeof(uchar) * img.rows * img.cols * 3, img.data, 0, NULL, NULL );
     if (err != CL_SUCCESS)
@@ -151,6 +181,8 @@ int main(int argc, char** argv)
     }
     
     cv::imwrite("./result.jpg", img);
+    printf("я всё.\n");
+    
     // освобождаем память
     clReleaseMemObject(input);
     clReleaseProgram(program);
