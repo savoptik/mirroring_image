@@ -1,7 +1,7 @@
 //
 // 8.58993 Скорость на видеокарте
-// 18876 скорость на процессоре параллельно
-// 1105 — скорость на процессоре
+// 0.045 скорость на процессоре параллельно
+// 1.262 — скорость на процессоре
 //
 
 #include <fcntl.h>
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     cl_mem input;                       // буфер для входных данных на видеокарте
     
     // ищем вычислительное устройство нужного типа
-    int gpu = 1;
+    int gpu = 0;
     err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
     if (err != CL_SUCCESS) {
         printf("Error: Failed to create a device group!\n");
