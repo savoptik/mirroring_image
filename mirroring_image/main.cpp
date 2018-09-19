@@ -131,8 +131,7 @@ int main(int argc, char** argv)
     }
 
     // запускаем нашу kernel-функцию на гриде из count потоков с найденным максимальным размером блока
-    global = (img.rows * img.cols * 3)/2;
-    local = global/img.rows;
+    global = ((img.rows * img.cols * 3) + (local - 1)) / local * local;
     err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     if (err)
     {
