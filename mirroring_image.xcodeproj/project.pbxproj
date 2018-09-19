@@ -35,6 +35,7 @@
 		FE500FE7214C04E10051D6D5 /* libopencv_imgcodecs.3.4.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_imgcodecs.3.4.1.dylib; path = ../../../../../usr/local/Cellar/opencv/3.4.1_5/lib/libopencv_imgcodecs.3.4.1.dylib; sourceTree = "<group>"; };
 		FE500FE8214C04E10051D6D5 /* libopencv_highgui.3.4.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_highgui.3.4.1.dylib; path = ../../../../../usr/local/Cellar/opencv/3.4.1_5/lib/libopencv_highgui.3.4.1.dylib; sourceTree = "<group>"; };
 		FE5ED0A4214C113F0031F1EB /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
+		FE74354B2151FBA600C68A8E /* resursis */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resursis; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				FE091015214C045000562B14 /* main.cpp */,
+				FE74354B2151FBA600C68A8E /* resursis */,
 			);
 			path = mirroring_image;
 			sourceTree = "<group>";

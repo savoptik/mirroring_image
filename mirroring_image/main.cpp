@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv)
 {
-    cv::Mat img = cv::imread("./apple.jpg");
+    cv::Mat img = cv::imread(argv[2]);
     int err;
     char *KernelSource = (char*) malloc(1000000); // указатель на буфер со строкой - кодом kernel-функции
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     }
     
     // читаем код kernel-функции из файла
-    FILE *fp = fopen("kernel.c", "r");
+    FILE *fp = fopen(argv[1], "r");
     if (fp == NULL) {
         printf("Error: Не могу прочесть файл с кодом kernel-функции!\n");
         return EXIT_FAILURE;
@@ -131,7 +131,8 @@ int main(int argc, char** argv)
     }
 
     // запускаем нашу kernel-функцию на гриде из count потоков с найденным максимальным размером блока
-    global = img.rows * img.cols * 3;
+    global = (img.rows * img.cols * 3)/2;
+    local = global/img.rows;
     err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     if (err)
     {
