@@ -27,8 +27,8 @@ void inCP(cv::Mat image) {
                                                             image.at<cv::Vec3b>(i, image.cols-j) = buf;
         }
     }
-                                                            clock_t tEnd = clock();
-    std::cout << "Время на ЦП: " << tEnd - tStart << std::endl;
+    clock_t tEnd = clock();
+    std::cout << "Время на ЦП: " << double(tEnd - tStart)/CLOCKS_PER_SEC * 1000 << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
     err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
     if (gpu == 1) std::cout << "время на видеокарте: " << double((time_end - time_start)/1e9) << std::endl;
-    else std::cout << "На ЦП параллельно: " << t1 - t0 << std::endl;
+    else std::cout << "На ЦП параллельно: " << double(t1 - t0)/CLOCKS_PER_SEC * 1000 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
