@@ -1,7 +1,7 @@
 //
-// 8.58993 Скорость на видеокарте
-// 0.045 скорость на процессоре параллельно
-// 1.262 — скорость на процессоре
+// 0 — Скорость на видеокарте
+// 7 мсек скорость на процессоре параллельно
+// 1 мсек — скорость на процессоре
 //
 
 #include <fcntl.h>
@@ -17,19 +17,20 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <chrono>
 
 void inCP(cv::Mat image) {
-    clock_t tStart = clock();
-/*    for (int i = 0; i < image.rows; i++) {
+    std::chrono::high_resolution_clock::time_point tStart = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols/2; j++) {
             auto buf = image.at<cv::Vec3b>(i, j);
             image.at<cv::Vec3b>(i, j) = image.at<cv::Vec3b>(i, image.cols-j);
                                                             image.at<cv::Vec3b>(i, image.cols-j) = buf;
         }
-    } */
-    system("sleep 1")
-    clock_t tEnd = clock();
-    std::cout << "Время на ЦП: " << double(tEnd - tStart)/CLOCKS_PER_SEC << std::endl;
+    }
+    std::chrono::high_resolution_clock::time_point tEnd = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(tEnd - tStart).count();
+    std::cout << "Время на ЦП: " << duration << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -51,7 +52,7 @@ int main(int argc, char** argv)
     cl_mem input;                       // буфер для входных данных на видеокарте
     
     // ищем вычислительное устройство нужного типа
-    int gpu = 0;
+    int gpu = 1;
     err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
     if (err != CL_SUCCESS) {
         printf("Error: Failed to create a device group!\n");
@@ -155,9 +156,8 @@ int main(int argc, char** argv)
     // запускаем нашу kernel-функцию на гриде из count потоков с найденным максимальным размером блока
     global = ((img.rows * img.cols * 3) + (local - 1)) / local * local;
     cl_event event;
-    clock_t t0 = clock();
+    std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, &event);
-    clock_t t1 = clock();
     if (err)
     {
         printf("Error: Failed to execute kernel!\n");
@@ -165,7 +165,8 @@ int main(int argc, char** argv)
     }
     
     // ждем завершения выполнения задачи
-    err = clWaitForEvents(1, &event)
+    err = clWaitForEvents(1, &event);
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (err)
     {
       printf("Error: Failed to execute kernel!\n");
@@ -174,13 +175,11 @@ int main(int argc, char** argv)
     cl_ulong time_start, time_end;
     err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     err |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    if (err)
-    {
-      printf("Error: Failed to get execution time!\n");
-      return EXIT_FAILURE;
+    if (gpu == 0) {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        std::cout << "Время на ЦП параллельно: " << duration << std::endl;
     }
-    if (gpu == 1) std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
-    else std::cout << "На ЦП параллельно: " << (double)(t1 - t0)/CLOCKS_PER_SEC * 1000 << std::endl;
+    else std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
