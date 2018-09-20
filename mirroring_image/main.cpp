@@ -1,5 +1,5 @@
 //
-// 0 — Скорость на видеокарте
+// 0 мсек — Скорость на видеокарте
 // 7 мсек скорость на процессоре параллельно
 // 1 мсек — скорость на процессоре
 //
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
         std::cout << "Время на ЦП параллельно: " << duration << std::endl;
     }
-    else std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
+    else std::cout << "время на видеокарте: " << double(time_end - time_start) / 1e9 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
