@@ -1,7 +1,12 @@
 //
+// размер изображения 670 x 465
 // 0 мсек — Скорость на видеокарте
 // 7 мсек скорость на процессоре параллельно
 // 1 мсек — скорость на процессоре
+// другое изображение размером 6498 x 3890
+// 1 мсек - скорость на процессоре
+// 0 мсек - скорость на видеокарте
+// 5 мсек - параллельно на процессоре
 //
 
 #include <fcntl.h>
@@ -35,7 +40,7 @@ void inCP(cv::Mat image) {
 
 int main(int argc, char** argv)
 {
-    cv::Mat img = cv::imread(argv[2]);
+    cv::Mat img = cv::imread(argv[3]);
     inCP(img);
     int err;
     char *KernelSource = (char*) malloc(1000000); // указатель на буфер со строкой - кодом kernel-функции
@@ -52,7 +57,7 @@ int main(int argc, char** argv)
     cl_mem input;                       // буфер для входных данных на видеокарте
     
     // ищем вычислительное устройство нужного типа
-    int gpu = 1;
+    int gpu = 0;
     err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
     if (err != CL_SUCCESS) {
         printf("Error: Failed to create a device group!\n");
@@ -179,7 +184,7 @@ int main(int argc, char** argv)
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
         std::cout << "Время на ЦП параллельно: " << duration << std::endl;
     }
-    else std::cout << "время на видеокарте: " << double(time_end - time_start) / 1e9 << std::endl;
+    else std::cout << "время на видеокарте: " << double((time_end - time_start)/ 1e9) << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
