@@ -1,12 +1,12 @@
 //
-// размер изображения 670 x 465
+//  изображение размером 6498 x 3890
 // 0 мсек — Скорость на видеокарте
-// 7 мсек скорость на процессоре параллельно
-// 1 мсек — скорость на процессоре
-// другое изображение размером 6498 x 3890
-// 1 мсек - скорость на процессоре
+// 547.168 мсек скорость на процессоре параллельно
+// 64.3 мсек — скорость на процессоре
+// размер изображения 670 x 465
+// 0.669 мсек - скорость на процессоре
 // 0 мсек - скорость на видеокарте
-// 5 мсек - параллельно на процессоре
+// 6.8 мсек - параллельно на процессоре
 //
 
 #include <fcntl.h>
@@ -34,13 +34,13 @@ void inCP(cv::Mat image) {
         }
     }
     std::chrono::high_resolution_clock::time_point tEnd = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(tEnd - tStart).count();
-    std::cout << "Время на ЦП: " << duration << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(tEnd - tStart).count();
+    std::cout << "Время на ЦП: " << (double)duration / 1000 << std::endl;
 }
 
 int main(int argc, char** argv)
 {
-    cv::Mat img = cv::imread(argv[3]);
+    cv::Mat img = cv::imread(argv[2]);
     inCP(img);
     int err;
     char *KernelSource = (char*) malloc(1000000); // указатель на буфер со строкой - кодом kernel-функции
@@ -170,7 +170,8 @@ int main(int argc, char** argv)
     }
     
     // ждем завершения выполнения задачи
-    err = clWaitForEvents(1, &event);
+//    err = clWaitForEvents(1, &event);
+    clFinish(commands);
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (err)
     {
@@ -181,10 +182,10 @@ int main(int argc, char** argv)
     err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     err |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
     if (gpu == 0) {
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        std::cout << "Время на ЦП параллельно: " << duration << std::endl;
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+        std::cout << "Время на ЦП параллельно: " << (double)duration / 1000 << std::endl;
     }
-    else std::cout << "время на видеокарте: " << double((time_end - time_start)/ 1e9) << std::endl;
+    else std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
