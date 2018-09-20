@@ -1,11 +1,11 @@
 //
 //  изображение размером 6498 x 3890
-// 0 мсек — Скорость на видеокарте
+// 734.038 мсек — Скорость на видеокарте
 // 547.168 мсек скорость на процессоре параллельно
 // 64.3 мсек — скорость на процессоре
 // размер изображения 670 x 465
 // 0.669 мсек - скорость на процессоре
-// 0 мсек - скорость на видеокарте
+// 10.245 мсек - скорость на видеокарте
 // 6.8 мсек - параллельно на процессоре
 //
 
@@ -40,7 +40,7 @@ void inCP(cv::Mat image) {
 
 int main(int argc, char** argv)
 {
-    cv::Mat img = cv::imread(argv[2]);
+    cv::Mat img = cv::imread(argv[3]);
     inCP(img);
     int err;
     char *KernelSource = (char*) malloc(1000000); // указатель на буфер со строкой - кодом kernel-функции
@@ -170,22 +170,22 @@ int main(int argc, char** argv)
     }
     
     // ждем завершения выполнения задачи
-//    err = clWaitForEvents(1, &event);
-    clFinish(commands);
+    err = clWaitForEvents(1, &event);
+//    clFinish(commands);
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     if (err)
     {
       printf("Error: Failed to execute kernel!\n");
       return EXIT_FAILURE;
     }
-    cl_ulong time_start, time_end;
-    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-    err |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    if (gpu == 0) {
+//    cl_ulong time_start, time_end;
+//    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+//    err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+//    if (gpu == 0) {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
         std::cout << "Время на ЦП параллельно: " << (double)duration / 1000 << std::endl;
-    }
-    else std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
+//    }
+//    else std::cout << "время на видеокарте: " << (double)(time_end - time_start)/1e9 << std::endl;
     clReleaseEvent(event);
     
     // копируем результаты с видеокарты
